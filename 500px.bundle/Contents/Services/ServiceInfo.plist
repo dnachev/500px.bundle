@@ -1,0 +1,14 @@
+<plist version="1.0">
+  <dict>
+    <key>URL</key>
+	<dict>
+      <key>500pxCDN</key>
+      <dict>
+        <key>URLPatterns</key>
+        <array>
+          <string>https://500px.com/photo/.*</string>
+        </array>
+      </dict>
+    </dict>
+  </dict>
+</plist>

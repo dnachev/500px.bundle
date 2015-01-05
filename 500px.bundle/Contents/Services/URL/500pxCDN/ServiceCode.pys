@@ -1,0 +1,60 @@
+'''
+Returns dictionary with the basic metadata properties for a 500px photo.
+
+The following attributes are returned:
+  
+  'title' - the name of the photo
+  'summary' - the description of the photo
+  'image_url' - the URL of the photo (the actual png or jpg file)
+  'thumb' - the URL of the photo thumbnail
+  'author' - the name of the photographer
+
+The information is extracted from the metadata elements, embedded in the page.
+'''
+def fetch_image_meta(url):
+    image_page = HTML.ElementFromURL(url)
+
+    title = image_page.xpath("//meta[@property='og:title']")[0].get("content") 
+    summary = image_page.xpath("//meta[@property='og:description']")[0].get("content")
+    image_url = image_page.xpath("//meta[@property='og:image']")[0].get("content")
+    json_meta_url = image_page.xpath("//link[@rel='alternate' and @type='text/json+oembed']")[0].get("href")
+
+    # Fetch the embedded JSON metadata file for additional information
+    json_meta = JSON.ObjectFromURL(json_meta_url)
+    thumb = json_meta["thumbnail_url"]
+    author = json_meta["author_name"]
+    result = {
+      'title': title,
+      'summary': summary,
+      'image_url': image_url,
+      'thumb': thumb,
+      'author': author
+    }
+    Log.Debug('Image %s metadata: %s', url, JSON.StringFromObject(result))
+    return result
+
+####################################################################################################
+def MetadataObjectForURL(url):
+    image_meta = fetch_image_meta(url)
+    Log.Debug('Requested metadata object for url %s', url)
+    # Return the photo
+    return PhotoObject(
+        title = image_meta["title"],
+        summary = image_meta["summary"],
+        thumb = image_meta["thumb"]
+    )
+
+####################################################################################################
+def MediaObjectsForURL(url):
+    return [
+      MediaObject(
+        parts = [PartObject(key=Callback(GetPhoto, url = url))]
+      )
+    ]
+
+####################################################################################################
+def GetPhoto(url):
+    image_meta = fetch_image_meta(url)
+    image_url = image_meta['image_url']
+    Log.Debug('Actual 500px photo URL for %s: %s', url, image_url)
+    return Redirect(image_url)
