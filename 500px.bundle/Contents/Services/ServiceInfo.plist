@@ -2,7 +2,7 @@
   <dict>
     <key>URL</key>
 	<dict>
-      <key>500pxCDN</key>
+      <key>500pxPhotos</key>
       <dict>
         <key>URLPatterns</key>
         <array>
