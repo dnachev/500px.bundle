@@ -8,6 +8,8 @@ LOGIN_URL = API_URL + "/session"
 CSRF_TOKEN_URL = "https://500px.com/popular"
 PHOTOS_PER_PAGE = 100
 
+ICON = '500px_logo.png'
+
 NAME = L("Title")
 ####################################################################################################
 def Start():
@@ -70,9 +72,9 @@ def get_csrf_token():
 	return csrf_token
 
 ####################################################################################################
-@handler('/photos/500px', L('PhotosTitle'))
+@handler('/photos/500px', L('ChannelName'), thumb = ICON)
 def PhotosMainMenu():
-	oc = ObjectContainer(view_group='Pictures', no_cache=True)
+	oc = ObjectContainer(view_group='Pictures', no_cache=True, title2=L("PopularPhotosName"))
 
 	# 500px API requires authenticity_token parameter attached to all requests, which are made to the API.
 	# This authenticity_token is actually available in every page, which https://500px.com returns and it is
