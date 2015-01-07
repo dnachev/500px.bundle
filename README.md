@@ -22,11 +22,11 @@ cookies set by the server and extracts the CSRF token, which the API expects. Th
 the plugin can break anytime in future.
 
 ## Known Issues / Limitations
-* Only the first 100 photos are fetched (suggestions are accepted how to implement the paging in a plugin)
-* No filtering based on categories can be done.
 * Search is not supported.
 * No access to the fresh, upcoming or editor's choice lists.
 * Some photos are marked as Adult content. These require actual logged in access to view, which is not implemented yet.
+* Thumbnails, which are marked as Adult content are not filtered.
+* Thumbnails for categories, which have spaces in their names do not have thumbnails.
 
 ## Thanks
 [Plex Team](https://github.com/plexinc-plugins/NationalGeographic.bundle) - National Geographic plugin, which this plugin is based on.
