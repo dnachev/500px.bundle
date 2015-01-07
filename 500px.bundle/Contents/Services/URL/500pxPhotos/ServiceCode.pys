@@ -1,4 +1,4 @@
-'''
+"""
 Returns dictionary with the basic metadata properties for a 500px photo.
 
 The following attributes are returned:
@@ -10,7 +10,7 @@ The following attributes are returned:
   'author' - the name of the photographer
 
 The information is extracted from the metadata elements, embedded in the page.
-'''
+"""
 def fetch_image_meta(url):
     image_page = HTML.ElementFromURL(url)
 

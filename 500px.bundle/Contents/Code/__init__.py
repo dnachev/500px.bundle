@@ -1,12 +1,43 @@
 from urllib import quote
 
 API_URL = "https://api.500px.com/v1"
-PHOTOS_URL = API_URL + "/photos?page={page}&feature={feature}&rpp={results_per_page}&authenticity_token={token}&image_size[]=3"
+PHOTOS_URL = API_URL + "/photos?page={page}&feature={feature}&rpp={results_per_page}&authenticity_token={token}&image_size[]=3&only={category}"
 PHOTO_URL = "https://500px.com/photo/{id}"
 LOGIN_URL = API_URL + "/session"
 
 CSRF_TOKEN_URL = "https://500px.com/popular"
 PHOTOS_PER_PAGE = 100
+
+CATEGORIES = [
+"All Categories", # must be always first
+"Abstract",
+"Animals",
+"Black and White",
+"Celebrities",
+"City and Architecture",
+"Commercial",
+"Concert",
+"Family",
+"Fashion",
+"Film",
+"Fine Art",
+"Food",
+"Journalism",
+"Landscapes",
+"Macro",
+"Nature",
+"Nude",
+"People",
+"Performing Arts",
+"Sport",
+"Still Life",
+"Street",
+"Transportation",
+"Travel",
+"Underwater",
+"Urban Exploration",
+"Wedding"
+]
 
 ICON = '500px_logo.png'
 
@@ -26,11 +57,11 @@ def Start():
 	HTTP.CacheTime = 1
 
 ####################################################################################################
-'''
+"""
 Validates the CSRF token we have stored by making a small request to the 500px API.
 
 Returns True if the token can be used for API requests, False otherwise.
-'''
+"""
 def validate_csrf_token(token):
 	if not token:
 		return False
@@ -41,6 +72,7 @@ def validate_csrf_token(token):
 			feature = 'popular',
 			page = 1,
 			results_per_page = 1,
+			category=''
 		), cacheTime=1, immediate=True)
 		Log.Debug("Validation is successful.")
 		return True
@@ -48,14 +80,14 @@ def validate_csrf_token(token):
 		Log.Info("Validation of %s failed: %s", token, e)
 		return False
 
-'''
-Returns CSRF token, which 500px API requires for making requests.
-
-The token is cached in Plex Dict object and will be reused if possible.
-
-This function should be called once for a single Plex request.
-'''
 def get_csrf_token():
+	"""
+	Returns CSRF token, which 500px API requires for making requests.
+
+	The token is cached in Plex Dict object and will be reused if possible.
+
+	This function should be called once for a single Plex request.
+	"""
 	csrf_token = Dict['csrf_token']
 	if validate_csrf_token(csrf_token):
 		return csrf_token
@@ -74,7 +106,19 @@ def get_csrf_token():
 ####################################################################################################
 @handler('/photos/500px', L('ChannelName'), thumb = ICON)
 def PhotosMainMenu():
-	oc = ObjectContainer(view_group='Pictures', no_cache=True, title2=L("PopularPhotosName"))
+	oc = ObjectContainer(title2=L("PopularPhotosName"))
+
+	for category in CATEGORIES:
+		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category))
+
+	return oc
+
+####################################################################################################
+@route('/photos/500px/{category}', page = int, allow_sync = False)
+def CategorizedPhotos(category = CATEGORIES[0], page = 1):
+
+	Log.Debug('Request category: %s, page: %d', category, page)
+	oc = ObjectContainer(view_group='List', title2=category)
 
 	# 500px API requires authenticity_token parameter attached to all requests, which are made to the API.
 	# This authenticity_token is actually available in every page, which https://500px.com returns and it is
@@ -86,10 +130,11 @@ def PhotosMainMenu():
 	csrf_token = quote(str(csrf_token))
 	Log.Debug("Encoded token: %s", csrf_token)
 	response = JSON.ObjectFromURL(PHOTOS_URL.format(
-			page = 1,
+			page = page,
 			feature = "popular",
 			results_per_page = PHOTOS_PER_PAGE,
-			token = csrf_token
+			token = csrf_token,
+			category = '' if CATEGORIES.index(category) == 0 else category # do not pass category if the first in the list (it should be always All)
 		), cacheTime = 0)
 	Log("Fetched %d photos out of %d spread over %d pages.", len(response["photos"]), response["total_items"], response["total_pages"])
 	for photo in response["photos"]:
@@ -111,5 +156,9 @@ def PhotosMainMenu():
 			summary = description,
 			thumb = thumb,
 			originally_available_at = date))
+	total_pages = response["total_pages"]
+	if page + 1 < total_pages:
+		page = page + 1
+		oc.add(NextPageObject(key = Callback(CategorizedPhotos, category = category, page = page), title = L("NextPage")))
 			
 	return oc
