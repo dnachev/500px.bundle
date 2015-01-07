@@ -41,6 +41,7 @@ CATEGORIES = [
 ]
 
 ICON = '500px_logo.png'
+NEXT_ICON = 'next_icon_bl.png'
 
 NAME = L("Title")
 ####################################################################################################
@@ -140,7 +141,7 @@ def PhotosMainMenu():
 			thumb_url = ICON
 		else:
 			thumb_url = get_category_thumb(category)
-		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category, thumb = thumb_url))
+		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category, thumb = R(thumb_url)))
 
 	return oc
 
@@ -191,6 +192,6 @@ def CategorizedPhotos(category = CATEGORIES[0], page = 1):
 	total_pages = response["total_pages"]
 	if page + 1 < total_pages:
 		page = page + 1
-		oc.add(NextPageObject(key = Callback(CategorizedPhotos, category = category, page = page), title = L("NextPage")))
+		oc.add(NextPageObject(key = Callback(CategorizedPhotos, category = category, page = page), title = L("NextPage"), thumb = R(NEXT_ICON)))
 			
 	return oc
