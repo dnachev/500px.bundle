@@ -7,6 +7,7 @@ LOGIN_URL = API_URL + "/session"
 
 CSRF_TOKEN_URL = "https://500px.com/popular"
 PHOTOS_PER_PAGE = 100
+PHOTOS_FEATURE = "popular" # can be also highest_rated, upcoming, editors, fresh_today, ...
 
 CATEGORIES = [
 "All Categories", # must be always first
@@ -54,7 +55,7 @@ def Start():
 	ObjectContainer.view_group = "List"
 
 	# Set the default cache time
-	HTTP.CacheTime = 1
+	HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
 """
@@ -69,7 +70,7 @@ def validate_csrf_token(token):
 		Log.Debug("Validating token %s...", token)
 		response = HTTP.Request(PHOTOS_URL.format(
 			token = token,
-			feature = 'popular',
+			feature = PHOTOS_FEATURE,
 			page = 1,
 			results_per_page = 1,
 			category=''
@@ -103,13 +104,43 @@ def get_csrf_token():
 	Dict['csrf_token'] = csrf_token
 	return csrf_token
 
+def get_category_param(category):
+	return '' if CATEGORIES[0] == category else category
+
+def get_category_thumb(category):
+	try:
+		thumb_key = 'thumb_' + category
+		thumb_url = Dict[thumb_key]
+		if thumb_url:
+			return thumb_url
+		csrf_token = quote(get_csrf_token())
+		category_param = quote(get_category_param(category))
+		response = JSON.ObjectFromURL(PHOTOS_URL.format(
+			page = 1,
+			feature = PHOTOS_FEATURE,
+			token = csrf_token,
+			results_per_page = 1,
+			category = category_param))
+		if len(response['photos']) < 1:
+			return None
+		thumb_url = response['photos'][0]['image_url'][0]
+		Dict[thumb_key] = thumb_url
+		return thumb_url
+	except Exception as e:
+		Log.Warn("Failed to fetch thumbnail for %s category: %s", category, e)
+		return None
+
 ####################################################################################################
 @handler('/photos/500px', L('ChannelName'), thumb = ICON)
 def PhotosMainMenu():
-	oc = ObjectContainer(title2=L("PopularPhotosName"))
+	oc = ObjectContainer(view_group='Pictures', title2=L("PopularPhotosName"))
 
 	for category in CATEGORIES:
-		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category))
+		if CATEGORIES[0] == category:
+			thumb_url = ICON
+		else:
+			thumb_url = get_category_thumb(category)
+		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category, thumb = thumb_url))
 
 	return oc
 
@@ -127,14 +158,15 @@ def CategorizedPhotos(category = CATEGORIES[0], page = 1):
 
 	csrf_token = get_csrf_token()
 	# The token needs to be urlencoded as the HTTP library won't do it
-	csrf_token = quote(str(csrf_token))
+	csrf_token = quote(csrf_token)
 	Log.Debug("Encoded token: %s", csrf_token)
+	category_param = quote(get_category_param(category)) # The category is not urlencoded by the HTTP library
 	response = JSON.ObjectFromURL(PHOTOS_URL.format(
 			page = page,
-			feature = "popular",
+			feature = PHOTOS_FEATURE,
 			results_per_page = PHOTOS_PER_PAGE,
 			token = csrf_token,
-			category = '' if CATEGORIES.index(category) == 0 else category # do not pass category if the first in the list (it should be always All)
+			category = category_param
 		), cacheTime = 0)
 	Log("Fetched %d photos out of %d spread over %d pages.", len(response["photos"]), response["total_items"], response["total_pages"])
 	for photo in response["photos"]:
