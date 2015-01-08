@@ -2,24 +2,12 @@
 A channel plugin for [Plex Media Server](https://plex.tv/).
 
 ## Installation
-Download and copy over to your plugins folder.
-
-On Mac OS, it is:
-````
-~/Library/Application Support/Plex Media Server/Plug-ins/
-````
-
-On Windows 7, it is:
-````
-%LOCALAPPDATA%\Plex Media Server\Plug-ins\
-````
+Follow the [Plex instructions for manually installing channels](https://support.plex.tv/hc/en-us/articles/201187656).
 
 ## Implementation
 The plugin is based on the [National Geographic plugin](https://github.com/plexinc-plugins/NationalGeographic.bundle).
 
-Because 500px API requires OAuth, a workaround was implemented, which mimics what the browser does - it relies on the
-cookies set by the server and extracts the CSRF token, which the API expects. This is undocumented usage of the API, which means
-the plugin can break anytime in future.
+Because 500px API requires OAuth, a workaround was implemented, which mimics what the browser does - it relies on the cookies set by the server and extracts the CSRF token, which the API expects. This is undocumented usage of the API, which means the plugin can break anytime in future.
 
 ## Known Issues / Limitations
 * Search is not supported.
