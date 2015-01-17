@@ -138,10 +138,11 @@ def PhotosMainMenu():
 
 	for category in CATEGORIES:
 		if CATEGORIES[0] == category:
-			thumb_url = ICON
+			thumb_url = R(ICON)
 		else:
 			thumb_url = get_category_thumb(category)
-		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category, thumb = R(thumb_url)))
+		Log.Debug('Category %s thumbnail: %s', category, thumb_url)
+		oc.add(DirectoryObject(key = Callback(CategorizedPhotos, category = category), title = category, thumb = thumb_url))
 
 	return oc
 
