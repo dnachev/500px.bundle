@@ -27,7 +27,7 @@ CATEGORIES = [
 "Landscapes",
 "Macro",
 "Nature",
-"Nude",
+# "Nude", // nude category requires logged in user, disable it for now
 "People",
 "Performing Arts",
 "Sport",
