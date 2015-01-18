@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
     <key>URL</key>
-	<dict>
+  	<dict>
       <key>500pxPhotos</key>
       <dict>
         <key>URLPatterns</key>
@@ -9,6 +11,11 @@
           <string>https://500px.com/photo/.*</string>
         </array>
       </dict>
+    </dict>
+    <key>Search</key>
+    <dict>
+      <key>500px</key>
+      <dict />
     </dict>
   </dict>
 </plist>

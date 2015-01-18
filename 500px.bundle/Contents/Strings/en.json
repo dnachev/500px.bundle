@@ -3,5 +3,8 @@
     "ChannelName": "500px",
     "PopularPhotosName": "Popular Photos",
     "AllCategory": "All Categories",
-    "NextPage": "Next"
+    "NextPage": "Next",
+
+    "SearchTitle": "Search 500px Photos",
+    "SearchPrompt": "What are you looking for?"
 }

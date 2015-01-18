@@ -1,0 +1,30 @@
+import px500api as api
+
+def parse_photos(photos):
+	"""
+	Parses photos list from standard 500px API response and generates the appropriate
+	Plex metadata object.
+
+	Returns a list of Plex metadata objects.
+	"""
+	result = []
+	for photo in photos:
+		Log.Debug("Parsing photo JSON object: %s", JSON.StringFromObject(photo))
+		title = photo["name"]
+		url = api.PHOTO_URL.format(id = photo["id"])
+		thumb = photo["image_url"][0]
+		description = photo["description"]
+	
+		date = None
+		try:
+			date = Datetime.ParseDate(photo["created_at"])
+		except:
+			Log.Debug('Cannot parse date %s', photo["created_at"])
+
+		result.append(PhotoObject(
+			url = url,
+			title = title,
+			summary = description,
+			thumb = thumb,
+			originally_available_at = date))
+	return result

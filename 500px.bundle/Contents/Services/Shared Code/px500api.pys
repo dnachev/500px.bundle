@@ -1,0 +1,96 @@
+from urllib import quote
+
+CSRF_TOKEN_URL = "https://500px.com/popular"
+API_URL = "https://api.500px.com/v1"
+PHOTOS_URL = API_URL + "/photos?page={page}&feature={feature}&rpp={results_per_page}&authenticity_token={token}&image_size[]=3&only={category}"
+PHOTO_URL = "https://500px.com/photo/{id}"
+LOGIN_URL = API_URL + "/session"
+SEARCH_URL = API_URL + "/photos/search?term={term}&exclude=Nude&page={page}&rpp={results_per_page}&image_size[]=3&sort={sort}&authenticity_token={token}"
+
+class SortType:
+	Relevance = '_score'
+	Pulse = 'highest_rated'
+	Date = 'created_at'
+
+PHOTOS_FEATURE = "popular" # can be also highest_rated, upcoming, editors, fresh_today, ...
+
+CATEGORIES = [
+"All Categories", # must be always first
+"Abstract",
+"Animals",
+"Black and White",
+"Celebrities",
+"City and Architecture",
+"Commercial",
+"Concert",
+"Family",
+"Fashion",
+"Film",
+"Fine Art",
+"Food",
+"Journalism",
+"Landscapes",
+"Macro",
+"Nature",
+# "Nude", // nude category requires logged in user, disable it for now
+"People",
+"Performing Arts",
+"Sport",
+"Still Life",
+"Street",
+"Transportation",
+"Travel",
+"Underwater",
+"Urban Exploration",
+"Wedding"
+]
+
+####################################################################################################
+def validate_csrf_token(token):
+	"""
+	Validates the CSRF token we have stored by making a small request to the 500px API.
+
+	Returns True if the token can be used for API requests, False otherwise.
+	"""
+	if not token:
+		return False
+	try:
+		Log.Debug("Validating token %s...", token)
+		response = HTTP.Request(PHOTOS_URL.format(
+			token = token,
+			feature = PHOTOS_FEATURE,
+			page = 1,
+			results_per_page = 1,
+			category=''
+		), cacheTime=1, immediate=True)
+		Log.Debug("Validation is successful.")
+		return True
+	except Exception as e:
+		Log.Info("Validation of %s failed: %s", token, e)
+		return False
+
+def get_csrf_token(cached_token = None):
+	"""
+	Returns CSRF token, which 500px API requires for making requests.
+
+	If cached_token is passed, it will be validated and reused. If it's
+	invalid, new token will be retrieved.
+
+	This function should be called once for a single Plex request.
+	"""
+	csrf_token = cached_token
+	if validate_csrf_token(csrf_token):
+		Log.Debug('Reusing cached token: %s', csrf_token)
+		return csrf_token
+	Log.Info("Token expired. Retrieving CSF token from one 500px page...R");
+	# TODO Validate existing CSRF token before returning using ping
+	csrf_request = HTTP.Request(CSRF_TOKEN_URL, headers = { 'Accept': "text/html" }, cacheTime = 1, immediate = True)
+	csrf_page_content = csrf_request.content;
+	csrf_page = HTML.ElementFromString(csrf_page_content)
+	csrf_token_element = csrf_page.xpath("//meta[@name='csrf-token']")[0]
+	csrf_token = csrf_token_element.get("content")
+	# Prepare it for embedding in URL
+	csrf_token = quote(csrf_token)
+	Log.Info("Found token: %s", csrf_token)
+	Log.Debug("Available cookies: %s", str(HTTP.CookiesForURL("https://500px.com/popular")))
+	return csrf_token

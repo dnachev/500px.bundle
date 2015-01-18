@@ -1,0 +1,17 @@
+import px500api as api
+import px500parse as parse
+from urllib import quote
+####################################################################################################
+def Search(query):
+    csrf_token = api.get_csrf_token()
+    results = JSON.ObjectFromURL(api.SEARCH_URL.format(
+            page = 1,
+            term = quote(query),
+            results_per_page = 100,
+            sort = api.SortType.Relevance,
+            token = csrf_token
+        ))
+    photos = parse.parse_photos(results['photos'])
+    oc = ObjectContainer(title1='500px', title2='Search Results', objects=photos)
+
+    return oc
