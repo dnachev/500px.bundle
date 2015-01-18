@@ -1,4 +1,5 @@
 from urllib import quote
+import time
 
 # Plex Media Server shared code import
 api = SharedCodeService.px500api
@@ -9,7 +10,10 @@ PHOTOS_PER_PAGE = 100
 ICON = '500px_logo.png'
 NEXT_ICON = 'next_icon_bl.png'
 
+THUMBNAIL_CACHE_TIME = CACHE_1HOUR # seconds
+
 NAME = L("Title")
+
 ####################################################################################################
 def Start():
 
@@ -34,11 +38,18 @@ def get_category_param(category):
 	return '' if api.CATEGORIES[0] == category else category
 
 def get_category_thumb(category):
+	# The method caches the thumbnails in tuples, together with the
+	# timestamp when they were retrieved. The tuple look like:
+	#  (url, timestamp)
+	cache = Dict['thumbnail_cache']
+	if not cache:
+		Dict['thumbnail_cache'] = cache = {}
+	if category in cache:
+		cache_entry = cache[category]
+		if cache_entry[1] + THUMBNAIL_CACHE_TIME >= time.time():
+			return cache_entry[0]
+		Log.Debug("Thumbnail for %s found, but it was expired. Reloading...", category)
 	try:
-		thumb_key = 'thumb_' + category
-		thumb_url = Dict[thumb_key]
-		if thumb_url:
-			return thumb_url
 		csrf_token = get_csrf_token()
 		category_param = quote(get_category_param(category))
 		response = JSON.ObjectFromURL(api.PHOTOS_URL.format(
@@ -50,7 +61,7 @@ def get_category_thumb(category):
 		if len(response['photos']) < 1:
 			return None
 		thumb_url = response['photos'][0]['image_url'][0]
-		Dict[thumb_key] = thumb_url
+		cache[category] = (thumb_url, time.time())
 		return thumb_url
 	except Exception as e:
 		Log.Warn("Failed to fetch thumbnail for %s category: %s", category, e)
